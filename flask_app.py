@@ -2,10 +2,8 @@ from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError, LineBotApiError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
-import openai, os, threading, json
+import openai, os, threading
 from datetime import datetime
-import gspread
-from google.oauth2.service_account import Credentials
 
 app = Flask(__name__)
 
@@ -16,14 +14,6 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
-
-# Google Sheets接続設定（環境変数からJSONを取得）
-scope = ["https://www.googleapis.com/auth/spreadsheets"]
-json_str = os.getenv("GCP_CREDENTIALS")
-json_data = json.loads(json_str)
-creds = Credentials.from_service_account_info(json_data, scopes=scope)
-client_gs = gspread.authorize(creds)
-sheet = client_gs.open("LINE ChatGPT Log").sheet1
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
@@ -40,6 +30,7 @@ def handle_message(event):
     user_text = event.message.text
     user_id = event.source.user_id
 
+    # スレッドで非同期処理（即時応答後に別途pushメッセージ送信）
     threading.Thread(target=reply_gpt, args=(user_text, user_id)).start()
 
 def reply_gpt(user_text, user_id):
@@ -50,9 +41,15 @@ def reply_gpt(user_text, user_id):
     reply = res.choices[0].message.content
 
     try:
+        # pushメッセージで返信（即時性が求められないため）
         line_bot_api.push_message(user_id, TextSendMessage(reply))
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        sheet.append_row([timestamp, user_text, reply])
+
+        # 会話ログを保存
+        with open("chat_log.txt", "a", encoding="utf-8") as f:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            f.write(f"{timestamp}\tユーザー: {user_text}\n")
+            f.write(f"{timestamp}\tChatGPT: {reply}\n")
+
     except LineBotApiError as e:
         print(f"LINE APIエラー: {e}")
 
