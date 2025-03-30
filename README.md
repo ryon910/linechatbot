@@ -75,5 +75,7 @@ LINE公式アカウントにメッセージを送ると、ChatGPTによる自動
 
 ## 参考ドキュメント
 - [LINE Developers公式](https://developers.line.biz/ja/)
+- [LINE API参考動画](https://www.youtube.com/watch?v=T0KAE2kq2Xo)
 - [OpenAI APIリファレンス](https://platform.openai.com/docs/introduction)
+- [Flask公式ドキュメント](https://flask.palletsprojects.com/)
 - [Render公式ドキュメント](https://render.com/docs)
