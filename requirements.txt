@@ -1,8 +1,4 @@
 flask
 line-bot-sdk
 openai
-streamlit
-pandas
 gunicorn
-gspread
-google-auth
