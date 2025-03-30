@@ -39,7 +39,7 @@ def handle_message(event):
 def reply_gpt(user_text, user_id):
     # ユーザーごとの履歴を取得または初期化
     history = conversation_histories.get(user_id, [])
-    
+
     # 新しいユーザーのメッセージを履歴に追加
     history.append({"role": "user", "content": user_text})
 
@@ -59,12 +59,6 @@ def reply_gpt(user_text, user_id):
 
         # 最新10件に制限
         conversation_histories[user_id] = history[-10:]
-
-        # ログに記録
-        with open("chat_log.txt", "a", encoding="utf-8") as f:
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            f.write(f"{timestamp}\tユーザー: {user_text}\n")
-            f.write(f"{timestamp}\tChatGPT: {reply}\n")
 
     except LineBotApiError as e:
         print(f"LINE APIエラー: {e}")
